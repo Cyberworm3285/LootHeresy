@@ -44,7 +44,7 @@ namespace LootHeresyLib
         {
             ILootable<TKey, TGenerate> res = Algorithm.Generate(_items.ToArray());
 
-            if (!res.UpdateAvaiability())
+            if (!res.UpdateAvailability())
                 DetachChild(res.Key);
 
             if (_children.TryGetValue(res.Key, out var t))
@@ -105,16 +105,15 @@ namespace LootHeresyLib
                 .FirstOrDefault(x => x != null);
         }
 
-        internal IEnumerable<LootTreeNode<TKey, TGenerate>> TraversePreOrderWhere(Predicate<LootTreeNode<TKey, TGenerate>> predicate)
+        internal IEnumerable<LootTreeNode<TKey, TGenerate>> TraversePreOrder()
         {
-            if (predicate(this))
-                yield return this;
+            yield return this;
 
             if (this._children.Count == 0)
                 yield break;
 
             foreach (var c in this._children.Values)
-                foreach (var r in c.TraversePreOrderWhere(predicate))
+                foreach (var r in c.TraversePreOrder())
                     yield return r;
         }
 
@@ -125,18 +124,32 @@ namespace LootHeresyLib
             _logger?.Log
             (
                 $"detaching child with key[{key}] in node [{this.Key}], located in layer {Layer}", 
-                LoggerSeverity.Info | LoggerSeverity.Avaiability
+                LoggerSeverity.Info | LoggerSeverity.Availability
             );
 
             if (this._items.Count != 0)
                 return;
+            if (_parent == null)
+            {
+                _logger?.Log("root is now empty", LoggerSeverity.Warning | LoggerSeverity.Availability);
+                return;
+            }
 
             _logger?.Log
             (
                 $"node underflow, detaching from next parent \"{_parent.Key}\"", 
-                LoggerSeverity.Info | LoggerSeverity.Warning |LoggerSeverity.Avaiability
+                LoggerSeverity.Info | LoggerSeverity.Warning |LoggerSeverity.Availability
             );
             _parent.DetachChild(this.Key);
         }
+
+        #region overrides
+
+        public override string ToString()
+        => (_parent == null)
+            ? "[Root]"
+            : $"[{this.GetType().Name} Key:\"{Key}\" Layer \"{Layer}\"]";
+
+        #endregion
     }
 }

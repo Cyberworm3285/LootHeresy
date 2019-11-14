@@ -28,7 +28,7 @@ namespace LootHeresyLib.Presets.PnP.Container
             _traits
                 .ToList()
                 .OrderBy(x => Rand.Next(_traits.Length))
-                .Take(Rand.Next(_n, _k) + 1)
+                .Take(Rand.Next(_n, _k + 1))
                 .Select(x => x.Generate()));
     }
 }

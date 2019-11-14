@@ -16,7 +16,7 @@ namespace LootHeresyLib.Loot
         public TGenerate Generate()
         => Item;
 
-        public bool UpdateAvaiability() => true;
+        public bool UpdateAvailability() => true;
 
         public override bool Equals(object obj)
         {

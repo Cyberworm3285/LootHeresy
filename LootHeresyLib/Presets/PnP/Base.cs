@@ -10,7 +10,7 @@ namespace LootHeresyLib.Presets.PnP
         public virtual int Rarity => 1;
         public virtual string Key => this.GetType().Name;
 
-        public virtual bool UpdateAvaiability()
+        public virtual bool UpdateAvailability()
         {
             if (_avaiability < 0)
                 return true;

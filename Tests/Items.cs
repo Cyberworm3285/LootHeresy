@@ -36,7 +36,7 @@ namespace Tests
         public string Generate()
         => _algo.Generate(_craps).Generate();
 
-        public bool UpdateAvaiability() => true;
+        public bool UpdateAvailability() => true;
     }
 
     static class TraitProvider

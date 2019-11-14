@@ -6,6 +6,7 @@ using LootHeresyLib;
 using LootHeresyLib.Algorithms;
 using LootHeresyLib.Logger;
 using LootHeresyLib.Loot;
+using LootHeresyLib.Extensions.Generic;
 
 using LootHeresyLib.Presets;
 
@@ -20,8 +21,9 @@ namespace Tests
             var random = Rand.GetRandom();
             var logger = new ConsoleLogger
             {
-                Take = LoggerSeverity.Avaiability,
+                Take = LoggerSeverity.Availability | LoggerSeverity.Error | LoggerSeverity.Warning,
             };
+
             var randomLoot = new RandomLoot<string, string>(random) { Logger = logger };
             var partition = new PartitionLoot<string, string>(random) { Logger = logger };
 
@@ -40,9 +42,9 @@ namespace Tests
                 .ToArray();
 
 
-            var miscPath = convertPath("Usefull", "Misc:3");
-            var weaponPath = convertPath("Usefull", "Gear", "Weapon:2");
-            var armorPath = convertPath("Usefull", "Gear", "Armor:1");
+            var miscPath = convertPath("Useful", "Misc:3");
+            var weaponPath = convertPath("Useful", "Gear", "Weapon:2");
+            var armorPath = convertPath("Useful", "Gear", "Armor:1");
 
             var prov = new LootProvider();
 
@@ -53,22 +55,16 @@ namespace Tests
 
             tree.Root.Algorithm = randomLoot;
 
+            tree.ForEach(Console.WriteLine);
+
             for (int i = 0; i < 100; i++)
             {
                 Console.WriteLine(tree.GetResult());
             }
 
-            //var m = tree.GetTreeNodeByKey("Weapon").GetSpecificWithin(x => x.Key.Contains("Motherfucker"), randomLoot);
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    Console.WriteLine(m.Generate());
-            //}
-            //
             Console.ReadKey();
         }
     }
-
-
 
     class LootProvider
     {

@@ -11,10 +11,7 @@ namespace LootHeresyLib.Loot
 
         TGenerate Generate();
 
-        /// <summary>
-        /// returns true if still avaiable after method call
-        /// </summary>
-        /// <returns></returns>
-        bool UpdateAvaiability();
+        /// <summary>returns true if still avaiable after method call</summary>
+        bool UpdateAvailability();
     }
 }

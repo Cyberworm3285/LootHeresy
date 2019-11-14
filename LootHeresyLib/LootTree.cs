@@ -6,10 +6,11 @@ using LootHeresyLib.Extensions.Specific;
 using LootHeresyLib.Extensions.Generic;
 using LootHeresyLib.Logger;
 using LootHeresyLib.Loot;
+using System.Collections;
 
 namespace LootHeresyLib
 {
-    public class LootTree<TKey, TGenerate>
+    public class LootTree<TKey, TGenerate> : IEnumerable<LootTreeNode<TKey, TGenerate>>
     {
         private LootTreeNode<TKey, TGenerate> _root;
         private ILootAlgorithm<TKey, TGenerate> _algo;
@@ -63,9 +64,14 @@ namespace LootHeresyLib
         public TGenerate GetResult()
         => _root.GetResult();
 
-        public void UpdateNodeWhere(Predicate<LootTreeNode<TKey, TGenerate>> predicate)
-        {
+        #region IEnumerable<T>
 
-        }
+        public IEnumerator<LootTreeNode<TKey, TGenerate>> GetEnumerator()
+        => Root.TraversePreOrder().GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+        => Root.TraversePreOrder().GetEnumerator();
+
+        #endregion
     }
 }

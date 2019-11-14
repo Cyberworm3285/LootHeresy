@@ -8,6 +8,8 @@ namespace LootHeresyLib.Logger
     {
         public LoggerSeverity Take { get; set; }
 
+        public event Action<string, LoggerSeverity, object> OnLog;
+
         private Dictionary<LoggerSeverity, ConsoleColor> _colorTable = new Dictionary<LoggerSeverity, ConsoleColor>
         {
             { LoggerSeverity.Info,              ConsoleColor.Green      },
@@ -16,7 +18,7 @@ namespace LootHeresyLib.Logger
             { LoggerSeverity.Result,            ConsoleColor.Blue       },
             { LoggerSeverity.PathInfo,          ConsoleColor.Cyan       },
             { LoggerSeverity.InputValidation,   ConsoleColor.DarkRed    },
-            { LoggerSeverity.Avaiability,       ConsoleColor.Yellow     },    
+            { LoggerSeverity.Availability,       ConsoleColor.Yellow     },    
         };
         public void Log(string message, LoggerSeverity severity, object reference = null)
         {
@@ -39,6 +41,8 @@ namespace LootHeresyLib.Logger
             Console.ForegroundColor = _colorTable[getMostSevere(sev)];
             Console.WriteLine($"[{severity.ToString()}][{message}]");
             Console.ResetColor();
+
+            OnLog?.Invoke(message, severity, reference);
         }
     }
 }

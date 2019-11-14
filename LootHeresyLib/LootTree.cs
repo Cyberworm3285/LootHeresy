@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 
 using LootHeresyLib.Algorithms;
 using LootHeresyLib.Extensions.Specific;
 using LootHeresyLib.Extensions.Generic;
 using LootHeresyLib.Logger;
 using LootHeresyLib.Loot;
-using System.Collections;
 
 namespace LootHeresyLib
 {
@@ -23,7 +23,7 @@ namespace LootHeresyLib
             if (algo.IsNull())
                 logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation, "no algorithm provided");
 
-            _root = new LootTreeNode<TKey, TGenerate>(null, default(TKey), 0, algo, logger);
+            _root = new LootTreeNode<TKey, TGenerate>(null, default, 0, algo, logger);
             _algo = algo;
         }
 

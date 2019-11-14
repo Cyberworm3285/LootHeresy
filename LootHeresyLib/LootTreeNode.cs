@@ -95,13 +95,13 @@ namespace LootHeresyLib
             return algo.Generate(_items.Where(x => !_children.ContainsKey(x.Key) && predicate(x)).ToArray());
         }
 
-        internal LootTreeNode<TKey, TGenerate> GetTreeNodeByKey(TKey o)
+        internal LootTreeNode<TKey, TGenerate> GetTreeNodeByKey(TKey k)
         {
-            if (_children.TryGetValue(o, out var res))
+            if (_children.TryGetValue(k, out var res))
                 return res;
 
             return _children.Values
-                .Select(x => x.GetTreeNodeByKey(o))
+                .Select(x => x.GetTreeNodeByKey(k))
                 .FirstOrDefault(x => x != null);
         }
 
@@ -123,7 +123,7 @@ namespace LootHeresyLib
             this._items.RemoveAll(x => x.Key.Equals(key));
             _logger?.Log
             (
-                $"detaching child with key[{key}] in node [{this.Key}], located in layer {Layer}", 
+                $"detaching child with key[{key}] in node {this}", 
                 LoggerSeverity.Info | LoggerSeverity.Availability
             );
 
@@ -137,7 +137,7 @@ namespace LootHeresyLib
 
             _logger?.Log
             (
-                $"node underflow, detaching from next parent \"{_parent.Key}\"", 
+                $"node underflow, detaching from next parent {_parent}", 
                 LoggerSeverity.Info | LoggerSeverity.Warning |LoggerSeverity.Availability
             );
             _parent.DetachChild(this.Key);
@@ -148,7 +148,7 @@ namespace LootHeresyLib
         public override string ToString()
         => (_parent == null)
             ? "[Root]"
-            : $"[{this.GetType().Name} Key:\"{Key}\" Layer \"{Layer}\"]";
+            : $"[Key:\"{Key}\" Layer \"{Layer}\"]";
 
         #endregion
     }

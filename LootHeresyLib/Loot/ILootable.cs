@@ -8,6 +8,13 @@ namespace LootHeresyLib.Loot
     {
         int Rarity { get; }
         TKey Key { get; }
+
         TGenerate Generate();
+
+        /// <summary>
+        /// returns true if still avaiable after method call
+        /// </summary>
+        /// <returns></returns>
+        bool UpdateAvaiability();
     }
 }

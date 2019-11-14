@@ -11,9 +11,10 @@ namespace LootHeresyLib.Logger
         Result          = 2 << 0,
         PathInfo        = 2 << 1,
         Info            = 2 << 2,
-        Warning         = 2 << 3,
-        InputValidation = 2 << 4,
-        Error           = 2 << 5,
+        Avaiability     = 2 << 3,
+        Warning         = 2 << 4,
+        InputValidation = 2 << 5,
+        Error           = 2 << 6,
         All             = int.MaxValue,
     }
 }

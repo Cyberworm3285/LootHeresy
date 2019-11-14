@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using LootHeresyLib.Algorithms;
+using LootHeresyLib.Extensions.Specific;
+using LootHeresyLib.Extensions.Generic;
 using LootHeresyLib.Logger;
 using LootHeresyLib.Loot;
 
@@ -15,13 +18,22 @@ namespace LootHeresyLib
         public LootTreeNode<TKey, TGenerate> Root => _root;
 
         public LootTree(ILootAlgorithm<TKey, TGenerate> algo, ILogger logger = null)
-            => (_root, _algo) = (new LootTreeNode<TKey, TGenerate>(algo, logger), algo);
+        {
+            if (algo.IsNull())
+                logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation, "no algorithm provided");
+
+            _root = new LootTreeNode<TKey, TGenerate>(null, default(TKey), 0, algo, logger);
+            _algo = algo;
+        }
 
         public LootTreeNode<TKey, TGenerate> AddPath(ILootable<TKey, TGenerate>[] path)
         => AddPath(_root, path);
 
         public LootTreeNode<TKey, TGenerate> AddPath(LootTreeNode<TKey, TGenerate> start, params ILootable<TKey, TGenerate>[] path)
         {
+            if (path.IsNull())
+                Logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation | LoggerSeverity.PathInfo, "provided path is null");
+
             LootTreeNode<TKey, TGenerate> curr = start;
             for (int i = 0; i < path.Length; i++)
             {
@@ -32,6 +44,9 @@ namespace LootHeresyLib
 
         public LootTreeNode<TKey, TGenerate> GetTreeNodeByPath(IEnumerable<TKey> path)
         {
+            if (path.IsNull())
+                Logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation | LoggerSeverity.PathInfo, "path for searching is null");
+
             LootTreeNode<TKey, TGenerate> curr = _root;
             foreach (var p in path)
                 curr = curr.GetChild(p);
@@ -47,5 +62,10 @@ namespace LootHeresyLib
 
         public TGenerate GetResult()
         => _root.GetResult();
+
+        public void UpdateNodeWhere(Predicate<LootTreeNode<TKey, TGenerate>> predicate)
+        {
+
+        }
     }
 }

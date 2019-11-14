@@ -16,6 +16,8 @@ namespace LootHeresyLib.Loot
         public TGenerate Generate()
         => Item;
 
+        public bool UpdateAvaiability() => true;
+
         public override bool Equals(object obj)
         {
             if (obj is DefaultLoot<TKey, TGenerate> dl)

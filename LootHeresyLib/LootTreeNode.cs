@@ -13,11 +13,14 @@ namespace LootHeresyLib
         private Dictionary<TKey, LootTreeNode<TKey, TGenerate>> _children = new Dictionary<TKey, LootTreeNode<TKey, TGenerate>>();
         private List<ILootable<TKey, TGenerate>> _items = new List<ILootable<TKey, TGenerate>>();
         private ILogger _logger;
+        private LootTreeNode<TKey, TGenerate> _parent;
 
         public ILootAlgorithm<TKey, TGenerate> Algorithm { get; set; }
+        public TKey Key { get; }
+        public int Layer { get; }
 
-        internal LootTreeNode(ILootAlgorithm<TKey, TGenerate> algo, ILogger logger)
-            => (Algorithm, _logger) = (algo, logger);
+        internal LootTreeNode(LootTreeNode<TKey, TGenerate> parent, TKey key, int layer, ILootAlgorithm<TKey, TGenerate> algo, ILogger logger)
+            => (_parent, Key, Layer, Algorithm, _logger) = (parent, key, layer, algo, logger);
 
         internal LootTreeNode<TKey, TGenerate> GetOrAddChild(ILootable<TKey, TGenerate> l, ILootAlgorithm<TKey, TGenerate> algo)
         {
@@ -27,7 +30,7 @@ namespace LootHeresyLib
                 return c;
             }
 
-            LootTreeNode<TKey, TGenerate> res = new LootTreeNode<TKey, TGenerate>(algo, _logger);
+            LootTreeNode<TKey, TGenerate> res = new LootTreeNode<TKey, TGenerate>(this, l.Key, Layer + 1, algo, _logger);
             _items.Add(l);
             _children.Add(l.Key, res);
 
@@ -40,6 +43,10 @@ namespace LootHeresyLib
         public TGenerate GetResult()
         {
             ILootable<TKey, TGenerate> res = Algorithm.Generate(_items.ToArray());
+
+            if (!res.UpdateAvaiability())
+                DetachChild(res.Key);
+
             if (_children.TryGetValue(res.Key, out var t))
             {
                 _logger?.Log($"{res.Key} refers to next layer, forwarding..", LoggerSeverity.Info);
@@ -96,6 +103,40 @@ namespace LootHeresyLib
             return _children.Values
                 .Select(x => x.GetTreeNodeByKey(o))
                 .FirstOrDefault(x => x != null);
+        }
+
+        internal IEnumerable<LootTreeNode<TKey, TGenerate>> TraversePreOrderWhere(Predicate<LootTreeNode<TKey, TGenerate>> predicate)
+        {
+            if (predicate(this))
+                yield return this;
+
+            if (this._children.Count == 0)
+                yield break;
+
+            foreach (var c in this._children.Values)
+                foreach (var r in c.TraversePreOrderWhere(predicate))
+                    yield return r;
+        }
+
+        internal void DetachChild(TKey key)
+        {
+            this._children.Remove(key);
+            this._items.RemoveAll(x => x.Key.Equals(key));
+            _logger?.Log
+            (
+                $"detaching child with key[{key}] in node [{this.Key}], located in layer {Layer}", 
+                LoggerSeverity.Info | LoggerSeverity.Avaiability
+            );
+
+            if (this._items.Count != 0)
+                return;
+
+            _logger?.Log
+            (
+                $"node underflow, detaching from next parent \"{_parent.Key}\"", 
+                LoggerSeverity.Info | LoggerSeverity.Warning |LoggerSeverity.Avaiability
+            );
+            _parent.DetachChild(this.Key);
         }
     }
 }

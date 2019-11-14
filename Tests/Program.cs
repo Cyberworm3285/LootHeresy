@@ -20,8 +20,7 @@ namespace Tests
             var random = Rand.GetRandom();
             var logger = new ConsoleLogger
             {
-                Take = LoggerSeverity.Warning  | LoggerSeverity.Info,
-                ThrowOnError = true,
+                Take = LoggerSeverity.Avaiability,
             };
             var randomLoot = new RandomLoot<string, string>(random) { Logger = logger };
             var partition = new PartitionLoot<string, string>(random) { Logger = logger };
@@ -39,6 +38,7 @@ namespace Tests
                     return new DefaultLoot<string, string>(int.Parse(parts[1]), parts[0], parts[0]);
                 })
                 .ToArray();
+
 
             var miscPath = convertPath("Usefull", "Misc:3");
             var weaponPath = convertPath("Usefull", "Gear", "Weapon:2");
@@ -58,12 +58,12 @@ namespace Tests
                 Console.WriteLine(tree.GetResult());
             }
 
-            var m = tree.GetTreeNodeByKey("Weapon").GetSpecificWithin(x => x.Key.Contains("Motherfucker"), randomLoot);
-            for (int i = 0; i < 10; i++)
-            {
-                Console.WriteLine(m.Generate());
-            }
-
+            //var m = tree.GetTreeNodeByKey("Weapon").GetSpecificWithin(x => x.Key.Contains("Motherfucker"), randomLoot);
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    Console.WriteLine(m.Generate());
+            //}
+            //
             Console.ReadKey();
         }
     }

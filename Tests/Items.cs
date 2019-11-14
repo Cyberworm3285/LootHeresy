@@ -32,8 +32,11 @@ namespace Tests
 
         public int Rarity => 1;
         public string Key => "Crap";
+
         public string Generate()
         => _algo.Generate(_craps).Generate();
+
+        public bool UpdateAvaiability() => true;
     }
 
     static class TraitProvider
@@ -53,60 +56,49 @@ namespace Tests
         );
     }
 
-    class Bullets : ILootable<string, string>
+    class Bullets : Base
     {
-        public int Rarity => 2;
-        public string Key => nameof(Bullets);
-        public string Generate() => $"{Rand.Next(2, 8)} Bullets";
+        public override string Generate() => $"{Rand.Next(2, 8)} Bullets";
     }
 
-    class LasAmmo : ILootable<string, string>
+    class LasAmmo : Base
     {
-        public int Rarity => 1;
-        public string Key => nameof(LasAmmo);
-        public string Generate() => $"{Rand.Next(3, 6)} Las Ammo";
+        public override string Generate() => $"{Rand.Next(3, 6)} Las Ammo";
     }
 
-    class Euro : ILootable<string, string>
+    class Euro : Base
     {
-        public int Rarity => 3;
-        public string Key => nameof(Euro);
-        public string Generate() => $"{Rand.Next(4, 10)}€";
+        public override int Rarity => 3;
+        public override string Generate() => $"{Rand.Next(4, 10)}€";
     }
 
-    class LightArmor : ILootable<string, string>
+    class LightArmor : Base
     {
-        public int Rarity => 4;
-        public string Key => nameof(LightArmor);
-        public string Generate() => $"{Key} +{Rand.Next(2, 5)} Def";
+        public override int Rarity => 4;
+        public override string Generate() => $"{Key} +{Rand.Next(2, 5)} Def";
     }
 
-    class MediumArmor : ILootable<string, string>
+    class MediumArmor : Base
     {
-        public int Rarity => 3;
-        public string Key => nameof(MediumArmor);
-        public string Generate() => $"{Key} +{Rand.Next(3, 6)} Def";
+        public override int Rarity => 3;
+        public override string Generate() => $"{Key} +{Rand.Next(3, 6)} Def";
     }
 
-    class HeavyArmor : ILootable<string, string>
+    class HeavyArmor : Base
     {
-        public int Rarity => 1;
-        public string Key => nameof(HeavyArmor);
-        public string Generate() => $"{Key} +{Rand.Next(5, 8)} Def";
+        public override string Generate() => $"{Key} +{Rand.Next(5, 8)} Def";
     }
 
-    class Pistol : ILootable<string, string>
+    class Pistol : Base
     {
-        public int Rarity => 15;
-        public string Key => nameof(Pistol);
-        public string Generate() => $"{Key} 1D10 + {Rand.Next(2, 5)} bludge dmg";
+        public override int Rarity => 15;
+        public override string Generate() => $"{Key} 1D10 + {Rand.Next(2, 5)} bludge dmg";
     }
 
-    class LasGun : ILootable<string, string>
+    class LasGun : Base
     {
-        public int Rarity => 13;
-        public string Key => nameof(LasGun);
-        public string Generate() => $"{Key} 1D10 + 5 energy dmg";
+        public override int Rarity => 13;
+        public override string Generate() => $"{Key} 1D10 + 5 energy dmg";
     }
 
     class MotherfuckerSwordOfDoom : Base

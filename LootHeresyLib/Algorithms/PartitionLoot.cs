@@ -2,6 +2,7 @@
 using System.Linq;
 
 using LootHeresyLib.Extensions.Generic;
+using LootHeresyLib.Extensions.Specific;
 using LootHeresyLib.Logger;
 using LootHeresyLib.Loot;
 
@@ -10,27 +11,36 @@ namespace LootHeresyLib.Algorithms
     public class PartitionLoot<TKey, TGenerate> : ILootAlgorithm<TKey, TGenerate>
     {
         private Random _rand;
+        private int _bias;
 
         public ILogger Logger { get; set; }
 
         public PartitionLoot()
         => _rand = new Random();
 
-        public PartitionLoot(Random rand)
-        => _rand = rand;
+        public PartitionLoot(Random rand, int bias = 0)
+        {
+            _rand = rand ?? new Random();
+            _bias = bias;
+        }
 
         public ILootable<TKey, TGenerate> Generate(ILootable<TKey, TGenerate>[] arr)
         {
-            if (arr.IsNullOrEmpty())
-            {
-                Logger?.Log("Array for generation is invalid (null or empty), causing possible undefined state", LoggerSeverity.InputValidation | LoggerSeverity.Error);
-                return null;
-            }
+            if (arr.IsNullOrEmpty() || arr.Any(x => x == null))
+                Logger.LogAndThrow<ArgumentException>
+                (
+                    LoggerSeverity.InputValidation,
+                    "Array for generation is invalid (null or empty), or including a nil value, causing possible undefined state",
+                    arr
+                        .Select((x,i) => (x, i))
+                        .Where(y => y.x == null)
+                        .ToArray()    
+                );
 
 
             int sum = arr.Sum(x => x.Rarity);
 
-            int index = _rand.Next(sum);
+            int index = _rand.Next(_bias, sum);
 
             if (Logger != null)
             {

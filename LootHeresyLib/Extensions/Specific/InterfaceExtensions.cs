@@ -1,8 +1,7 @@
-﻿using LootHeresyLib.Extensions.Generic;
+﻿using System;
+
+using LootHeresyLib.Extensions.Generic;
 using LootHeresyLib.Logger;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LootHeresyLib.Extensions.Specific
 {

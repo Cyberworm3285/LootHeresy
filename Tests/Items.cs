@@ -6,6 +6,7 @@ using LootHeresyLib.Algorithms;
 using LootHeresyLib.Presets.PnP.Container;
 using LootHeresyLib.Presets.PnP;
 using LootHeresyLib.Presets;
+using System.Collections.Generic;
 
 namespace Tests
 {
@@ -33,8 +34,8 @@ namespace Tests
         public int Rarity => 1;
         public string Key => "Crap";
 
-        public string Generate()
-        => _algo.Generate(_craps).Generate();
+        public string Generate(Stack<string> generationStack)
+        => _algo.Generate(_craps).Generate(null);
 
         public bool UpdateAvailability() => true;
     }
@@ -48,6 +49,7 @@ namespace Tests
                 new RandomPlainTrait("Famous", "Feared", "Cursed", "Mythic", "Unknown"),
                 new NRandomTraitContainer(
                     1,
+                    2,
                     new RandomPlainTrait("Stolen", "Lost In History", "Guided By Fate"),
                     new RandomPlainTrait("Big", "Small", "Ethereal"),
                     new RandomPlainTrait("Loud", "Silent", "Brutal")
@@ -56,56 +58,95 @@ namespace Tests
         );
     }
 
-    class Bullets : Base
+    abstract class MiscBase : Base
     {
-        public override string Generate() => $"{Rand.Next(2, 8)} Bullets";
+        public virtual int MinAvailability { get; protected set; }
+
+        public MiscBase(int minAvailability, int maxAvailability, int rarityPeritem)
+            : base(maxAvailability, rarityPeritem)
+        => MinAvailability = minAvailability;
+
+        public override bool UpdateAvailability()
+        {
+            if (Avaiability == MinAvailability)
+                return true;
+
+            Avaiability--;
+            return true;
+        }
     }
 
-    class LasAmmo : Base
+    class Bullets : MiscBase
     {
-        public override string Generate() => $"{Rand.Next(3, 6)} Las Ammo";
+        public Bullets() : base(2, 4, 20) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Rand.Next(2, 8)} Bullets";
     }
 
-    class Euro : Base
+    class LasAmmo : MiscBase
     {
-        public override int Rarity => 3;
-        public override string Generate() => $"{Rand.Next(4, 10)}€";
+        public LasAmmo() : base(1, 2, 15) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Rand.Next(3, 6)} Las Ammo";
+    }
+
+    class Euro : MiscBase
+    {
+        public Euro() : base(4, 8, 10) { }
+
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Rand.Next(4, 10)}€";
     }
 
     class LightArmor : Base
     {
-        public override int Rarity => 4;
-        public override string Generate() => $"{Key} +{Rand.Next(2, 5)} Def";
+        public LightArmor() : base(2, 30) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} +{Rand.Next(2, 5)} Def";
     }
 
     class MediumArmor : Base
     {
-        public override int Rarity => 3;
-        public override string Generate() => $"{Key} +{Rand.Next(3, 6)} Def";
+        public MediumArmor() : base(2, 20) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} +{Rand.Next(3, 6)} Def";
     }
 
     class HeavyArmor : Base
     {
-        public override string Generate() => $"{Key} +{Rand.Next(5, 8)} Def";
+        public HeavyArmor() : base(1, 15) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} +{Rand.Next(5, 8)} Def";
     }
 
     class Pistol : Base
     {
-        public override int Rarity => 15;
-        public override string Generate() => $"{Key} 1D10 + {Rand.Next(2, 5)} bludge dmg";
+        public Pistol() : base(2, 35) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} 1D10 + {Rand.Next(2, 5)} bludge dmg";
     }
 
     class LasGun : Base
     {
-        public override int Rarity => 13;
-        public override string Generate() => $"{Key} 1D10 + 5 energy dmg";
+        public LasGun() : base(1, 20) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} 1D10 + 5 energy dmg";
     }
 
     class MotherfuckerSwordOfDoom : Base
     {
-        public override string Generate() => $"{Key} 3D10 + {Rand.Next(7, 10)} dmg [{_traits.Generate()}|Lit af]";
-
         public MotherfuckerSwordOfDoom()
+            : base(1, 1)
         => _traits = TraitProvider.GenericWeaponModsLegendary;
+
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} 3D10 + {Rand.Next(7, 10)} dmg [{_traits.Generate()}|Lit af]";
+    }
+
+    class Bolter : Base
+    {
+        public Bolter() : base(1, 5) { }
+        public override string Generate(Stack<string> generationStack) 
+            => $"{Key} 2D10 + 7 impact ne explosive";
     }
 }

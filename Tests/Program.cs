@@ -21,7 +21,7 @@ namespace Tests
             var random = Rand.GetRandom();
             var logger = new ConsoleLogger
             {
-                Take = LoggerSeverity.Availability | LoggerSeverity.Error | LoggerSeverity.Warning,
+                Take = LoggerSeverity.Info | LoggerSeverity.Availability | LoggerSeverity.Error | LoggerSeverity.Warning,
             };
 
             var randomLoot = new RandomLoot<string, string>(random) { Logger = logger };
@@ -44,14 +44,20 @@ namespace Tests
 
             var miscPath = convertPath("Useful", "Misc:3");
             var weaponPath = convertPath("Useful", "Gear", "Weapon:2");
+            var legendaryWeaponPath = convertPath("Useful", "Gear", "LegendaryWeapon:0");
             var armorPath = convertPath("Useful", "Gear", "Armor:1");
 
             var prov = new LootProvider();
 
+            var legyNode = tree.AddPath(legendaryWeaponPath);
             tree.Root.AddLeaf(prov.Crap);
             tree.AddPath(miscPath).AddRangeAsLeafs(prov.Misc);
             tree.AddPath(armorPath).AddRangeAsLeafs(prov.Armor);
-            tree.AddPath(weaponPath).AddRangeAsLeafs(prov.Weapons);
+            legyNode.AddLeaf(prov.LegendaryWeapon);
+            tree.AddPath(weaponPath)
+                .AddRangeAsLeafs(prov.Weapons)
+                .SetFallback(legyNode);
+
 
             tree.Root.Algorithm = randomLoot;
 
@@ -61,7 +67,7 @@ namespace Tests
             {
                 Console.WriteLine(tree.GetResult());
             }
-
+            tree.ForEach(Console.WriteLine);
             Console.ReadKey();
         }
     }
@@ -88,7 +94,9 @@ namespace Tests
         {
             new Pistol(),
             new LasGun(),
-            new MotherfuckerSwordOfDoom(),
+            new Bolter(),
         };
+
+        public ILootable<string, string> LegendaryWeapon => new MotherfuckerSwordOfDoom();
     }
 }

@@ -1,26 +1,30 @@
 ﻿using LootHeresyLib.Loot;
+using System.Collections.Generic;
 
 namespace LootHeresyLib.Presets.PnP
 {
     public abstract class Base : ILootable<string, string>
     {
-        protected virtual int _avaiability { get; set; } = 1;
+        public virtual int Avaiability { get; protected set; }
+        public virtual int RarityPerItem { get; protected set; }
         protected ILootTrait _traits;
 
-        public virtual int Rarity => 1;
+        public virtual int Rarity => Avaiability * RarityPerItem;
         public virtual string Key => this.GetType().Name;
+
+        public Base(int availability = -1, int rarPerItem = 50)
+        => (Avaiability, RarityPerItem) = (availability, rarPerItem); 
 
         public virtual bool UpdateAvailability()
         {
-            if (_avaiability < 0)
+            if (Avaiability < 0)
                 return true;
-            if (_avaiability == 0)
+            if (Avaiability == 0)
                 return false;
 
-            return --_avaiability > 0;
+            return --Avaiability > 0;
         }
 
-        public abstract string Generate();
-
+        public abstract string Generate(Stack<string> generationStack);
     }
 }

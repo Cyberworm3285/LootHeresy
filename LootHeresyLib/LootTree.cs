@@ -14,6 +14,7 @@ namespace LootHeresyLib
     {
         private LootTreeNode<TKey, TGenerate> _root;
         private ILootAlgorithm<TKey, TGenerate> _algo;
+        private int _idCounter;
 
         public ILogger Logger { get; set; }
         public LootTreeNode<TKey, TGenerate> Root => _root;
@@ -23,7 +24,8 @@ namespace LootHeresyLib
             if (algo.IsNull())
                 logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation, "no algorithm provided");
 
-            _root = new LootTreeNode<TKey, TGenerate>(null, default, 0, algo, logger);
+            _root = new LootTreeNode<TKey, TGenerate>(0, null, default, 0, algo, logger);
+            _idCounter = 1;
             _algo = algo;
         }
 
@@ -38,7 +40,9 @@ namespace LootHeresyLib
             LootTreeNode<TKey, TGenerate> curr = start;
             for (int i = 0; i < path.Length; i++)
             {
-                curr = curr.GetOrAddChild(path[i], _algo);
+                curr = curr.GetOrAddChild(path[i], _idCounter, _algo);
+                if (curr.ID == _idCounter)
+                    _idCounter++;
             }
             return curr;
         }

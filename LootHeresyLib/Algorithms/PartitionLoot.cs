@@ -26,13 +26,17 @@ namespace LootHeresyLib.Algorithms
 
         public ILootable<TKey, TGenerate> Generate(ILootable<TKey, TGenerate>[] arr)
         {
+            arr = arr
+                ?.Where(x => x.Rarity > 0)
+                .ToArray();
+
             if (arr.IsNullOrEmpty() || arr.Any(x => x == null))
                 Logger.LogAndThrow<ArgumentException>
                 (
                     LoggerSeverity.InputValidation,
                     "Array for generation is invalid (null or empty), or including a nil value, causing possible undefined state",
                     arr
-                        .Select((x,i) => (x, i))
+                        .Select((x, i) => (x, i))
                         .Where(y => y.x == null)
                         .ToArray()    
                 );

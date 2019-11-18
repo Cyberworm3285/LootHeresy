@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace LootHeresyLib.Logger
 {
@@ -18,7 +17,7 @@ namespace LootHeresyLib.Logger
             { LoggerSeverity.Result,            ConsoleColor.Blue       },
             { LoggerSeverity.PathInfo,          ConsoleColor.Cyan       },
             { LoggerSeverity.InputValidation,   ConsoleColor.DarkRed    },
-            { LoggerSeverity.Availability,       ConsoleColor.Yellow     },    
+            { LoggerSeverity.Availability,      ConsoleColor.Yellow     },    
         };
         public void Log(string message, LoggerSeverity severity, object reference = null)
         {

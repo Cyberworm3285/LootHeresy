@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace LootHeresyLib.Loot
 {
@@ -9,7 +7,7 @@ namespace LootHeresyLib.Loot
         int Rarity { get; }
         TKey Key { get; }
 
-        TGenerate Generate();
+        TGenerate Generate(Stack<TKey> generationStack);
 
         /// <summary>returns true if still avaiable after method call</summary>
         bool UpdateAvailability();

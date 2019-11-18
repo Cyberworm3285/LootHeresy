@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 namespace LootHeresyLib.Presets
 {
     public static class Rand

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace LootHeresyLib.Loot
 {
@@ -13,7 +11,7 @@ namespace LootHeresyLib.Loot
         public DefaultLoot(int r, TKey i, TGenerate obj)
         => (Rarity, Key, Item) = (r, i, obj);
 
-        public TGenerate Generate()
+        public TGenerate Generate(Stack<TKey> generationStacks)
         => Item;
 
         public bool UpdateAvailability() => true;

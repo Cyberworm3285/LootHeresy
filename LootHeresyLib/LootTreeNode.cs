@@ -7,6 +7,7 @@ using LootHeresyLib.Logger;
 using LootHeresyLib.Algorithms;
 using LootHeresyLib.Extensions.Specific;
 using LootHeresyLib.Extensions.Generic;
+using LootHeresyLib.Exceptions;
 
 namespace LootHeresyLib
 {
@@ -17,7 +18,7 @@ namespace LootHeresyLib
         private LootTreeNode<TKey, TGenerate> _fallbackNode;
         private HashSet<LootTreeNode<TKey, TGenerate>> _linkedByAsFallback;
         private ILogger _logger;
-        private LootTreeNode<TKey, TGenerate> _parent;
+        private HashSet<LootTreeNode<TKey, TGenerate>> _parents;
 
         private ILootAlgorithm<TKey, TGenerate> _algorithm;
 
@@ -31,15 +32,21 @@ namespace LootHeresyLib
 
         public TKey Key { get; }
         public int Layer { get; }
+        public bool IsDetached { get; private set; }
+
+        public event Action<LootTreeNode<TKey, TGenerate>> OnDetach;
 
         internal LootTreeNode(int id, LootTreeNode<TKey, TGenerate> parent, TKey key, int layer, ILootAlgorithm<TKey, TGenerate> algo, ILogger logger)
         {
-            _parent = parent;
             Key = key;
             Layer = layer;
             _algorithm = algo;
             _logger = logger;
             ID = id;
+
+            _parents = parent == null
+                ? null
+                : new HashSet<LootTreeNode<TKey, TGenerate>> { parent };
 
             _items = new List<ILootable<TKey, TGenerate>>();
             _linkedByAsFallback = new HashSet<LootTreeNode<TKey, TGenerate>>();
@@ -64,19 +71,19 @@ namespace LootHeresyLib
         => _children[key];
 
         public TGenerate GetResult()
-        => GetResult(new Stack<TKey> { this.Key });
+        => GetResult(new Queue<TKey>());
 
-        private TGenerate UseFallback(Stack<TKey> generationStack)
+        private TGenerate UseFallback(Queue<TKey> generationQueue)
         {
-            generationStack.Push(this.Key);
+            generationQueue.Enqueue(this.Key);
             _logger?.Log($"using fallback to node {_fallbackNode}", LoggerSeverity.Warning);
-            return _fallbackNode.GetResult(generationStack);
+            return _fallbackNode.GetResult(generationQueue);
         }
 
-        private TGenerate GetResult(Stack<TKey> generationStack)
+        private TGenerate GetResult(Queue<TKey> generationQueue)
         {
             if (_items.Count == 0)
-                return UseFallback(generationStack);
+                return UseFallback(generationQueue);
 
             ILootable<TKey, TGenerate> res = _algorithm.Generate(_items.ToArray());
 
@@ -86,11 +93,11 @@ namespace LootHeresyLib
             if (_children.TryGetValue(res.Key, out var t))
             {
                 _logger?.Log($"{res.Key} refers to next layer, forwarding..", LoggerSeverity.Info);
-                generationStack.Push(this.Key);
-                return t.GetResult(generationStack);
+                generationQueue.Enqueue(this.Key);
+                return t.GetResult(generationQueue);
             }
             _logger?.Log($"{res} is Leaf, generating output..", LoggerSeverity.Info);
-            return res.Generate(generationStack);
+            return res.Generate(generationQueue);
         }
 
         public LootTreeNode<TKey, TGenerate> AddLeaf(ILootable<TKey, TGenerate> value)
@@ -171,7 +178,7 @@ namespace LootHeresyLib
             if (this._fallbackNode != null)
                 return;
 
-            if (_parent == null)
+            if (_parents.IsNull())
             {
                 _logger?.Log("root is now empty", LoggerSeverity.Warning | LoggerSeverity.Availability);
                 return;
@@ -184,13 +191,15 @@ namespace LootHeresyLib
             }
             _logger?.Log
             (
-                $"node underflow, detaching from next parent {_parent}", 
+                $"node underflow, detaching from parents", 
                 LoggerSeverity.Info | LoggerSeverity.Warning |LoggerSeverity.Availability
             );
-            _parent.DetachChild(this.Key);
+            _parents.ForEach(x => x.DetachChild(this.Key));
+            OnDetach?.Invoke(this);
+            this.IsDetached = true;
         }
 
-        private bool DetectFallbackLoops(Queue<LootTreeNode<TKey, TGenerate>> traversedNodes)
+        private bool DetectReferenceLoops(Queue<LootTreeNode<TKey, TGenerate>> traversedNodes)
         {
             if (traversedNodes.Contains(this))
             {
@@ -199,12 +208,12 @@ namespace LootHeresyLib
             }
 
             traversedNodes.Enqueue(this);
-            if (_children.Values.Any(x => x.DetectFallbackLoops(new Queue<LootTreeNode<TKey, TGenerate>>(traversedNodes))))
+            if (_children.Values.Any(x => x.DetectReferenceLoops(new Queue<LootTreeNode<TKey, TGenerate>>(traversedNodes))))
                 return true;
 
             if (_fallbackNode == null)
                 return false;
-            return _fallbackNode.DetectFallbackLoops(new Queue<LootTreeNode<TKey, TGenerate>>(traversedNodes));
+            return _fallbackNode.DetectReferenceLoops(new Queue<LootTreeNode<TKey, TGenerate>>(traversedNodes));
         }
 
         public void SetFallback(LootTreeNode<TKey, TGenerate> node)
@@ -212,7 +221,7 @@ namespace LootHeresyLib
             var nodeQueue = new Queue<LootTreeNode<TKey, TGenerate>>();
             _fallbackNode = node;
 
-            node.DetectFallbackLoops(nodeQueue);
+            node.DetectReferenceLoops(nodeQueue);
 
             node._linkedByAsFallback.Add(this);
         }
@@ -226,14 +235,50 @@ namespace LootHeresyLib
             if (_items.Count != 0)
                 return;
 
-            _logger?.Log($"no more fallback and items available, detaching node {this} from parent", LoggerSeverity.Warning);
-            _parent.DetachChild(this.Key);
+            _logger?.Log($"no more fallback and items available, detaching node {this} from parents", LoggerSeverity.Warning);
+            _parents.ForEach(x => x.DetachChild(this.Key));
+            if (_linkedByAsFallback.Count == 0)
+                return;
+
+            _logger?.Log($"removing node as fallback from {_linkedByAsFallback.Count} other nodes", LoggerSeverity.Warning);
+            _linkedByAsFallback.ForEach(x => x.RemoveFallback(this));
+        }
+
+        public bool AddParent(LootTreeNode<TKey, TGenerate> p)
+        {
+            if (_parents.IsNull())
+                _logger.LogAndThrow<InvalidOperationException>(LoggerSeverity.PathInfo, "cannot add parent to root", p);
+
+            if (p.IsNull())
+                _logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation, "provided parent is null", p);
+
+            return _parents.Add(p);
+        }
+
+        public int AddChildNodes(params (LootTreeNode<TKey, TGenerate> node, int rarity)[] cn)
+        {
+            if (cn.IsNullOrEmpty() || cn.Any(x => x.IsNull()))
+                _logger.LogAndThrow<ArgumentException>(LoggerSeverity.InputValidation, "provided nodes are null, empty or contain null values", cn);
+
+            int counter = 0;
+            foreach (var n in cn)
+            {
+                if (_children.ContainsKey(n.node.Key))
+                    continue;
+
+                DefaultLoot<TKey, TGenerate> lootable = new DefaultLoot<TKey, TGenerate>(n.rarity, n.node.Key, default);
+                _items.Add(lootable);
+                _children.Add(n.node.Key, n.node);
+                counter++;
+            }
+            DetectReferenceLoops(new Queue<LootTreeNode<TKey, TGenerate>>());
+            return counter;
         }
 
         #region overrides
 
         public override string ToString()
-        => (_parent == null)
+        => (_parents == null)
             ? "[Root Layer \"0\"]"
             : $"[Key:\"{Key}\" Layer \"{Layer}\" ID:{ID}]";
 

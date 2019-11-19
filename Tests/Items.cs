@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Tests
 {
-    class Crap : ILootable<string, string>
+    class Crap : BonusBase
     {
         private ILootAlgorithm<string, string> _algo;
 
@@ -31,13 +31,13 @@ namespace Tests
             "Screws", "Nuts", "Spare Parts"
         );
 
-        public int Rarity => 1;
-        public string Key => "Crap";
+        public override int Rarity => 1;
+        public override string Key => "Crap";
 
-        public string Generate(Stack<string> generationStack)
-        => _algo.Generate(_craps).Generate(null);
+        public override string Generate(Queue<string> generationQueue)
+        => base.Generate(generationQueue) + _algo.Generate(_craps).Generate(null);
 
-        public bool UpdateAvailability() => true;
+        public override bool UpdateAvailability() => true;
     }
 
     static class TraitProvider
@@ -56,6 +56,37 @@ namespace Tests
                 )
             )
         );
+
+        public static readonly ILootTrait GearBonusTrait = new RandomPlainTrait(
+                "Indestructable", "Invisible", "Absolute Zero", "Solid <Insert Expensive Material>", "Mass Singularity"
+            );
+    }
+
+    abstract class BonusBase : Base
+    {
+        public BonusBase(int availability = -1, int rarPerItem = 50)
+            : base(availability, rarPerItem) 
+        {
+
+        }
+
+        private static Dictionary<string, ILootTrait> _traitMap = new Dictionary<string, ILootTrait>
+        {
+            { "Bonus" , TraitProvider.GearBonusTrait }
+        };
+
+        public override string Generate(Queue<string> generationQueue)
+        {
+            var t = InterpretStack<ILootTrait>(generationQueue, _traitMap);
+            if (!t.Any())
+                return "";
+#if DEBUG
+            System.Console.BackgroundColor = System.ConsoleColor.Green;
+            System.Console.WriteLine("Bonus, wuhu");
+            System.Console.ResetColor();
+#endif
+            return $"[{string.Join(",", t.Select(x => x.Generate()))}]";
+        }
     }
 
     abstract class MiscBase : Base
@@ -79,14 +110,14 @@ namespace Tests
     class Bullets : MiscBase
     {
         public Bullets() : base(2, 4, 20) { }
-        public override string Generate(Stack<string> generationStack) 
+        public override string Generate(Queue<string> generationStack) 
             => $"{Rand.Next(2, 8)} Bullets";
     }
 
     class LasAmmo : MiscBase
     {
         public LasAmmo() : base(1, 2, 15) { }
-        public override string Generate(Stack<string> generationStack) 
+        public override string Generate(Queue<string> generationStack) 
             => $"{Rand.Next(3, 6)} Las Ammo";
     }
 
@@ -94,59 +125,59 @@ namespace Tests
     {
         public Euro() : base(4, 8, 10) { }
 
-        public override string Generate(Stack<string> generationStack) 
+        public override string Generate(Queue<string> generationStack) 
             => $"{Rand.Next(4, 10)}€";
     }
 
-    class LightArmor : Base
+    class LightArmor : BonusBase
     {
         public LightArmor() : base(2, 30) { }
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} +{Rand.Next(2, 5)} Def";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} +{Rand.Next(2, 5)} Def";
     }
 
-    class MediumArmor : Base
+    class MediumArmor : BonusBase
     {
         public MediumArmor() : base(2, 20) { }
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} +{Rand.Next(3, 6)} Def";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} +{Rand.Next(3, 6)} Def";
     }
 
-    class HeavyArmor : Base
+    class HeavyArmor : BonusBase
     {
         public HeavyArmor() : base(1, 15) { }
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} +{Rand.Next(5, 8)} Def";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} +{Rand.Next(5, 8)} Def";
     }
 
-    class Pistol : Base
+    class Pistol : BonusBase
     {
         public Pistol() : base(2, 35) { }
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} 1D10 + {Rand.Next(2, 5)} bludge dmg";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} 1D10 + {Rand.Next(2, 5)} bludge dmg";
     }
 
-    class LasGun : Base
+    class LasGun : BonusBase
     {
         public LasGun() : base(1, 20) { }
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} 1D10 + 5 energy dmg";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} 1D10 + 5 energy dmg";
     }
 
-    class MotherfuckerSwordOfDoom : Base
+    class MotherfuckerSwordOfDoom : BonusBase
     {
         public MotherfuckerSwordOfDoom()
             : base(1, 1)
         => _traits = TraitProvider.GenericWeaponModsLegendary;
 
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} 3D10 + {Rand.Next(7, 10)} dmg [{_traits.Generate()}|Lit af]";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} 3D10 + {Rand.Next(7, 10)} dmg [{_traits.Generate()}|Lit af]";
     }
 
-    class Bolter : Base
+    class Bolter : BonusBase
     {
         public Bolter() : base(1, 5) { }
-        public override string Generate(Stack<string> generationStack) 
-            => $"{Key} 2D10 + 7 impact ne explosive";
+        public override string Generate(Queue<string> generationStack) 
+            => $"{base.Generate(generationStack)}{Key} 2D10 + 7 impact ne explosive";
     }
 }

@@ -11,7 +11,7 @@ namespace LootHeresyLib.Loot
         public DefaultLoot(int r, TKey i, TGenerate obj)
         => (Rarity, Key, Item) = (r, i, obj);
 
-        public TGenerate Generate(Stack<TKey> generationStacks)
+        public TGenerate Generate(Queue<TKey> generationStacks)
         => Item;
 
         public bool UpdateAvailability() => true;

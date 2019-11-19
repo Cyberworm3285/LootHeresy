@@ -10,7 +10,6 @@ namespace LootHeresyLib.Extensions.Generic
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrEmpty<T>(this T[] t)
-            where T : class        
         => t == null || t.Length == 0;
     }
 }

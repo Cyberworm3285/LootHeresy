@@ -21,7 +21,7 @@ namespace Tests
             var random = Rand.GetRandom();
             var logger = new ConsoleLogger
             {
-                Take = LoggerSeverity.Info | LoggerSeverity.Availability | LoggerSeverity.Error | LoggerSeverity.Warning,
+                Take = LoggerSeverity.Availability | LoggerSeverity.Error | LoggerSeverity.Warning,
             };
 
             var randomLoot = new RandomLoot<string, string>(random) { Logger = logger };
@@ -34,7 +34,7 @@ namespace Tests
             => s.Select(x =>
                 {
                     if (!x.Contains(':'))
-                        return new DefaultLoot<string, string>(1, x, x);
+                        return new DefaultLoot<string, string>(50, x, x);
 
                     var parts = x.Split(':');
                     return new DefaultLoot<string, string>(int.Parse(parts[1]), parts[0], parts[0]);
@@ -42,32 +42,43 @@ namespace Tests
                 .ToArray();
 
 
-            var miscPath = convertPath("Useful", "Misc:3");
-            var weaponPath = convertPath("Useful", "Gear", "Weapon:2");
-            var legendaryWeaponPath = convertPath("Useful", "Gear", "LegendaryWeapon:0");
-            var armorPath = convertPath("Useful", "Gear", "Armor:1");
+            var bonusPath           = convertPath("Bonus:5");
+            var defaultPath         = convertPath("Default:95");
+            var genPath             = convertPath("Default", "Generation");
+            var miscPath            = convertPath("Default", "Generation", "Useful", "Misc:70");
+            var weaponPath          = convertPath("Default", "Generation", "Useful", "Gear:25"   , "Weapon:35");
+            var legendaryWeaponPath = convertPath("Default", "Generation", "Useful", "Gear"      , "LegendaryWeapon:5");
+            var armorPath           = convertPath("Default", "Generation", "Useful", "Gear"      , "Armor:60");
+            var crapPath            = convertPath("Default", "Generation", "Crap");
 
             var prov = new LootProvider();
 
-            var legyNode = tree.AddPath(legendaryWeaponPath);
-            tree.Root.AddLeaf(prov.Crap);
             tree.AddPath(miscPath).AddRangeAsLeafs(prov.Misc);
-            tree.AddPath(armorPath).AddRangeAsLeafs(prov.Armor);
-            legyNode.AddLeaf(prov.LegendaryWeapon);
-            tree.AddPath(weaponPath)
-                .AddRangeAsLeafs(prov.Weapons)
-                .SetFallback(legyNode);
+            tree.AddPath(crapPath).AddLeaf(prov.Crap);
+            tree.AddPath(defaultPath);
+
+            var genNode     = tree.AddPath(genPath);
+            var bonusNode   = tree.AddPath(bonusPath);
+            var armorNode   = tree.AddPath(armorPath).AddRangeAsLeafs(prov.Armor);
+            var weaponNode  = tree.AddPath(weaponPath).AddRangeAsLeafs(prov.Weapons);
+            var legyNode    = tree.AddPath(legendaryWeaponPath).AddLeaf(prov.LegendaryWeapon); ;
 
 
-            tree.Root.Algorithm = randomLoot;
+            armorNode.SetFallback(weaponNode);
+            weaponNode.SetFallback(legyNode);
+            tree.Connect(bonusNode, (genNode, 1));
 
-            tree.ForEach(Console.WriteLine);
+            tree
+                .Distinct()
+                .ForEach(Console.WriteLine);
 
             for (int i = 0; i < 100; i++)
             {
                 Console.WriteLine(tree.GetResult());
             }
-            tree.ForEach(Console.WriteLine);
+            tree
+                .Distinct()
+                .ForEach(Console.WriteLine);
             Console.ReadKey();
         }
     }

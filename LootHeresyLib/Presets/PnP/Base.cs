@@ -1,5 +1,7 @@
-﻿using LootHeresyLib.Loot;
+﻿using LootHeresyLib.Extensions.Generic;
+using LootHeresyLib.Loot;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LootHeresyLib.Presets.PnP
 {
@@ -25,6 +27,15 @@ namespace LootHeresyLib.Presets.PnP
             return --Avaiability > 0;
         }
 
-        public abstract string Generate(Stack<string> generationStack);
+        protected IEnumerable<T> InterpretStack<T>(Queue<string> queue, Dictionary<string, T> map)
+        {
+            foreach (var e in queue.Where(x => x != null))
+            {
+                if (map.TryGetValue(e, out T r))
+                    yield return r;
+            }
+        }
+
+        public abstract string Generate(Queue<string> generationQueue);
     }
 }

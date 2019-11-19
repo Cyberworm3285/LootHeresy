@@ -7,7 +7,7 @@ namespace LootHeresyLib.Loot
         int Rarity { get; }
         TKey Key { get; }
 
-        TGenerate Generate(Stack<TKey> generationStack);
+        TGenerate Generate(Queue<TKey> generationQueue);
 
         /// <summary>returns true if still avaiable after method call</summary>
         bool UpdateAvailability();

@@ -1,5 +1,5 @@
 ﻿using System;
-
+using LootHeresyLib.Exceptions;
 using LootHeresyLib.Extensions.Generic;
 using LootHeresyLib.Logger;
 
@@ -14,7 +14,7 @@ namespace LootHeresyLib.Extensions.Specific
                 sev |= LoggerSeverity.Error;
 
             logger?.Log(message, sev, objectRef);
-            throw typeof(TEx).Initialize<TEx>(message);
+            throw new HereticException(typeof(TEx).Initialize<TEx>(message), message, sev, objectRef);
         }
     }
 }

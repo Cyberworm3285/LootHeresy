@@ -68,6 +68,12 @@ namespace LootHeresyLib
         public TGenerate GetResult()
         => _root.GetResult();
 
+        public int Connect(LootTreeNode<TKey, TGenerate> parent, params (LootTreeNode<TKey, TGenerate> node, int rarity)[] children)
+        {
+            children.ForEach(c => c.node.AddParent(parent));
+            return parent.AddChildNodes(children);
+        }
+
         #region IEnumerable<T>
 
         public IEnumerator<LootTreeNode<TKey, TGenerate>> GetEnumerator()

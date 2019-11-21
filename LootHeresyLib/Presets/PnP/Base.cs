@@ -7,28 +7,36 @@ namespace LootHeresyLib.Presets.PnP
 {
     public abstract class Base : ILootable<string, string>
     {
-        public virtual int Avaiability { get; protected set; }
-        public virtual int RarityPerItem { get; protected set; }
-        protected ILootTrait _traits;
+        private int _minAv;
 
-        public virtual int Rarity => Avaiability * RarityPerItem;
+        public ILootTrait Traits { get; set; }
+        public virtual int Availability { get; protected set; }
+        public virtual int RarityPerItem { get; protected set; }
+
+        public virtual int Rarity => Availability * RarityPerItem;
         public virtual string Key => this.GetType().Name;
 
-        public Base(int availability = -1, int rarPerItem = 50)
-        => (Avaiability, RarityPerItem) = (availability, rarPerItem); 
+        public Base(int minA, int maxA, int rarPerItem)
+        {
+            _minAv = minA;
+            Availability = maxA;
+            RarityPerItem = rarPerItem;
+        }
 
         public virtual bool UpdateAvailability()
         {
-            if (Avaiability < 0)
-                return true;
-            if (Avaiability == 0)
+            if (--Availability == 0)
                 return false;
+            if (Availability == _minAv)
+                return true;
 
-            return --Avaiability > 0;
+            return true;
         }
 
-        protected IEnumerable<T> InterpretStack<T>(Queue<string> queue, Dictionary<string, T> map)
+        protected IEnumerable<T> InterpretQueue<T>(Queue<string> queue, Dictionary<string, T> map)
         {
+            if (map == null)
+                yield break;
             foreach (var e in queue.Where(x => x != null))
             {
                 if (map.TryGetValue(e, out T r))

@@ -1,5 +1,6 @@
 ﻿using LootHeresyLib.Extensions.Generic;
 using LootHeresyLib.Loot;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,12 +26,8 @@ namespace LootHeresyLib.Presets.PnP
 
         public virtual bool UpdateAvailability()
         {
-            if (--Availability == 0)
-                return false;
-            if (Availability == _minAv)
-                return true;
-
-            return true;
+            Availability = Math.Max(--Availability, _minAv);
+            return Availability > 0;
         }
 
         protected IEnumerable<T> InterpretQueue<T>(Queue<string> queue, Dictionary<string, T> map)

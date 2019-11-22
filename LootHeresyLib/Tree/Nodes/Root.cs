@@ -7,31 +7,31 @@ namespace LootHeresyLib.Tree.Nodes
 {
     public class Root<TKey, TGenerate> : ParentNode<TKey, TGenerate>
     {
-        private Dictionary<TKey, ExoNode<TKey, TGenerate>> _exoNodes;
+        private Dictionary<TKey, HalfRoot<TKey, TGenerate>> _halfRoots;
         
         public Root(int id, TKey key, ILootAlgorithm<TKey, TGenerate> algo, ILogger logger, bool ignoreAvailability = false)
             : base(id, key, algo, logger, ignoreAvailability)
         {
-            _exoNodes = new Dictionary<TKey, ExoNode<TKey, TGenerate>>();
+            _halfRoots = new Dictionary<TKey, HalfRoot<TKey, TGenerate>>();
         }
 
-        public bool ContainsExoNodeKey(TKey key)
-        => _exoNodes.ContainsKey(key);
+        internal bool ContainsHalfRootKey(TKey key)
+        => _halfRoots.ContainsKey(key);
 
-        public bool TryGetExoNode(TKey key, out ExoNode<TKey, TGenerate> n)
-        => _exoNodes.TryGetValue(key, out n);
+        internal bool TryGetHalfRoot(TKey key, out HalfRoot<TKey, TGenerate> n)
+        => _halfRoots.TryGetValue(key, out n);
 
-        public bool AddExoNode(ExoNode<TKey, TGenerate> exoNode)
+        public bool AddHalfRoot(HalfRoot<TKey, TGenerate> HalfRoot)
         {
-            if (_exoNodes.ContainsKey(exoNode.Key))
+            if (_halfRoots.ContainsKey(HalfRoot.Key))
                 return false;
 
-            _exoNodes.Add(exoNode.Key, exoNode);
+            _halfRoots.Add(HalfRoot.Key, HalfRoot);
             return true;
         }
 
-        public bool RemoveExoNode(ExoNode<TKey, TGenerate> exoNode)
-        => _exoNodes.Remove(exoNode.Key);
+        public bool RemoveHalfRoot(HalfRoot<TKey, TGenerate> HalfRoot)
+        => _halfRoots.Remove(HalfRoot.Key);
 
         public override string ToString()
         => "[Root]";

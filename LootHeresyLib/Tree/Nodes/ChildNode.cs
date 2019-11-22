@@ -93,9 +93,7 @@ namespace LootHeresyLib.Tree.Nodes
         {
             base.RemoveFallback(node);
 
-            if (_items.Count != 0)
-                return;
-            if (this._fallbackNode != null)
+            if (_items.Count != 0 || _fallbackNode != null)
                 return;
 
             _logger?.Log($"no more fallback and items available, detaching node {this} from parents", LoggerSeverity.Warning);

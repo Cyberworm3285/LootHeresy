@@ -31,24 +31,28 @@ namespace LootHeresyLib.Collections.Generic
 
         private void RemoveFromList(FallBackNode<Tkey, TGenerate> node)
         {
-            _innerList.Remove(node);
+            _innerList.RemoveAll(x => x.ID == node.ID);
             OnDetachedNodeRemoved?.Invoke(node);
         }
 
-        private void IncOccurance(int id)
+        private int IncOccurance(int id)
         {
             if (!_occuranceMap.ContainsKey(id))
+            {
                 _occuranceMap.Add(id, 1);
-            else
-                _occuranceMap[id]++;
+                return 1;
+            }
+
+            _occuranceMap[id]++;
+            return _occuranceMap[id];
         }
 
         public void Add(FallBackNode<Tkey, TGenerate> node)
         {
-            IncOccurance(node.ID);
 
             _innerList.Add(node);
-            node.OnDetach += RemoveFromList;
+            if (IncOccurance(node.ID) == 1)
+                node.OnDetach += RemoveFromList;
         }
 
         public void AddRange(IEnumerable<FallBackNode<Tkey, TGenerate>> range)
@@ -83,8 +87,8 @@ namespace LootHeresyLib.Collections.Generic
         public void Insert(int index, FallBackNode<Tkey, TGenerate> item)
         {
             _innerList.Insert(index, item);
-            item.OnDetach += RemoveFromList;
-            IncOccurance(item.ID);
+            if (IncOccurance(item.ID) == 1)
+                item.OnDetach += RemoveFromList;
         }
 
         public void RemoveAt(int index)
@@ -99,7 +103,9 @@ namespace LootHeresyLib.Collections.Generic
         public void Clear()
         {
             _occuranceMap.Clear();
-            _innerList.ForEach(n => n.OnDetach -= RemoveFromList);
+            _innerList
+                .Distinct()
+                .ForEach(n => n.OnDetach -= RemoveFromList);
             _innerList.Clear();
         }
 
@@ -118,7 +124,8 @@ namespace LootHeresyLib.Collections.Generic
                     _innerList[index].OnDetach -= RemoveFromList;
 
                 _innerList[index] = value;
-                IncOccurance(value.ID);
+                if (IncOccurance(value.ID) == 1)
+                    value.OnDetach += RemoveFromList;
             }
         }
     }

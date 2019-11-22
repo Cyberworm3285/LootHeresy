@@ -37,12 +37,12 @@ namespace LootHeresyLib.Tree
             _algo = algo;
         }
 
-        public ExoNode<TKey, TGenerate> AddExoNode(TKey key, ILootAlgorithm<TKey, TGenerate> algo = null, bool ignoreAvailability = false)
+        public HalfRoot<TKey, TGenerate> AddHalfRoot(TKey key, ILootAlgorithm<TKey, TGenerate> algo = null, bool ignoreAvailability = false)
         {
-            if (Root.TryGetExoNode(key, out var n))
+            if (Root.TryGetHalfRoot(key, out var n))
                 return n;
 
-            var node = new ExoNode<TKey, TGenerate>
+            var node = new HalfRoot<TKey, TGenerate>
             (
                 _idCounter++,
                 key,
@@ -51,7 +51,7 @@ namespace LootHeresyLib.Tree
                 Logger,
                 ignoreAvailability
             );
-            Root.AddExoNode(node);
+            Root.AddHalfRoot(node);
             _autoList.Add(node);
             return node;
         }

@@ -61,9 +61,9 @@ namespace Tests
             var crapNode = tree.AddPath(crapPath).AddLeaf(prov.Crap);
             var defaultNode = tree.AddPath(defaultPath);
 
-            var legacyExo = tree.AddExoNode("Legacy");
+            var legacyHalfRoot = tree.AddHalfRoot("Legacy");
             var legacyNode = tree
-                .AddPath(legacyExo, legacyPath)
+                .AddPath(legacyHalfRoot, legacyPath)
                 .AddRangeAsLeafs(prov.Armor)
                 .AddRangeAsLeafs(prov.Weapons)
                 .AddLeaf(prov.LegendaryWeapon);
@@ -79,13 +79,13 @@ namespace Tests
 
             armorNode.SetFallback(weaponNode);
             weaponNode.SetFallback(legyNode);
-            nodes.First(x => x.Key == "Gear").SetFallback(legacyExo);
+            nodes.First(x => x.Key == "Gear").SetFallback(legacyHalfRoot);
             tree.Connect(bonusNode, (genNode, 1));
-            legacyExo.AddChildNodes((crapNode, 90));
+            legacyHalfRoot.AddChildNodes((crapNode, 90));
 
             legacyNode.IgnoreAvailability = true;
 
-            legacyExo.Algorithm = fpl;
+            legacyHalfRoot.Algorithm = fpl;
             bonusNode.Algorithm = fpl;
             defaultNode.Algorithm = fpl;
             crapNode.Algorithm = fpl;
@@ -115,19 +115,19 @@ namespace Tests
 
         public ILootable<string, string>[] Armor => new ILootable<string, string>[]
         {
-            new DynamicLoot("Light Armor", (q,t) => $"{q.Surround("<{0}> ")}Light Armor {Rand.Next(3,6)}def { t.Surround("[{0}]")}",0,3){ Traits = TraitProvider.GenericArmor },
-            new DynamicLoot("Medium Armor", (q,t) => $"{q.Surround("<{0}> ")}Medium Armor {Rand.Next(4,8)}def { t.Surround("[{0}]")}",0,3){ Traits = TraitProvider.GenericArmor },
-            new DynamicLoot("Light Armor", (q,t) => $"{q.Surround("<{0}> ")}Heavy Armor {Rand.Next(7,10)}def { t.Surround("[{0}]")}",0,3){ Traits = TraitProvider.GenericArmor },
+            new DynamicLoot("Light Armor", (q,t) => $"{q.Surround("<{0}> ")}Light Armor {Rand.Next(3,6)}def { t.Surround("[{0}]")}",0,3,60){ Traits = TraitProvider.GenericArmor },
+            new DynamicLoot("Medium Armor", (q,t) => $"{q.Surround("<{0}> ")}Medium Armor {Rand.Next(4,8)}def { t.Surround("[{0}]")}",0,2,45){ Traits = TraitProvider.GenericArmor },
+            new DynamicLoot("Light Armor", (q,t) => $"{q.Surround("<{0}> ")}Heavy Armor {Rand.Next(7,10)}def { t.Surround("[{0}]")}",0,2,20){ Traits = TraitProvider.GenericArmor },
         };
 
         public ILootable<string, string>[] Weapons => new ILootable<string, string>[]
         {
-            new DynamicLoot("Pistol", (q,t) => $"{q.Surround("<{0}> ")}Pistol 1D8+{Rand.Next(3,5)} Impact dmg {t.Surround("[{0}]")}",0,3){ Traits = TraitProvider.GenericRanged },
-            new DynamicLoot("LasGun", (q,t) => $"{q.Surround("<{0}> ")}LasGun 6 Energy dmg {t.Surround("[{0}]")}",0,2){ Traits = TraitProvider.GenericRanged },
-            new DynamicLoot("Bolter", (q,t) => $"{q.Surround("<{0}> ")}Bolter 2D8+{Rand.Next(5,10)} Explosion dmg {t.Surround("[{0}]")}",0,1){ Traits = TraitProvider.GenericRanged },
+            new DynamicLoot("Pistol", (q,t) => $"{q.Surround("<{0}> ")}Pistol 1D8+{Rand.Next(3,5)} Impact dmg {t.Surround("[{0}]")}",0,3,50){ Traits = TraitProvider.GenericRanged },
+            new DynamicLoot("LasGun", (q,t) => $"{q.Surround("<{0}> ")}LasGun 6 Energy dmg {t.Surround("[{0}]")}",0,2,40){ Traits = TraitProvider.GenericRanged },
+            new DynamicLoot("Bolter", (q,t) => $"{q.Surround("<{0}> ")}Bolter 2D8+{Rand.Next(5,10)} Explosion dmg {t.Surround("[{0}]")}",0,1,10){ Traits = TraitProvider.GenericRanged },
         };
 
         public ILootable<string, string> LegendaryWeapon
-        => new DynamicLoot("LegendarySword", (q,t) => $"{q.Surround("<{0}> ")}Void's Edge 10 NULL dmg", 0,1) { Traits = TraitProvider.GenericWeaponModsLegendary };
+        => new DynamicLoot("LegendarySword", (q,t) => $"{q.Surround("<{0}> ")}Void's Edge 10 NULL dmg {t.Surround("[{0}]")}", 0,1,2) { Traits = TraitProvider.GenericWeaponModsLegendary };
     }
 }

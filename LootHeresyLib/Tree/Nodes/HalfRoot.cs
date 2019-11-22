@@ -3,13 +3,13 @@ using LootHeresyLib.Logger;
 
 namespace LootHeresyLib.Tree.Nodes
 {
-    public class ExoNode<TKey, TGenerate> : FallBackNode<TKey, TGenerate>
+    public class HalfRoot<TKey, TGenerate> : FallBackNode<TKey, TGenerate>
     {
         private readonly Root<TKey, TGenerate> _parent;
 
         public override int Layer => 0;
 
-        internal ExoNode(int id, TKey key, Root<TKey, TGenerate> parent, ILootAlgorithm<TKey, TGenerate> algo, ILogger logger, bool ignoreAvailability = false)
+        internal HalfRoot(int id, TKey key, Root<TKey, TGenerate> parent, ILootAlgorithm<TKey, TGenerate> algo, ILogger logger, bool ignoreAvailability = false)
             : base(id, key, algo, logger, ignoreAvailability)
         {
             _parent = parent;
@@ -19,7 +19,10 @@ namespace LootHeresyLib.Tree.Nodes
         {
             base.DetachChild(key);
 
-            _parent.RemoveExoNode(this);
+            if (_items.Count != 0 || _fallbackNode != null)
+                return;
+
+            _parent.RemoveHalfRoot(this);
 
             RaiseOnDetach();
             this.IsDetached = true;
